@@ -1,4 +1,6 @@
 import { prisma } from "../config/prisma";
+import bcrypt from "bcrypt";
+import { generateToken } from "../utils/jwt";
 
 export const register = async (req: any, res: any) => {
   try {
@@ -42,5 +44,35 @@ export const register = async (req: any, res: any) => {
 
   } catch (err) {
     return res.status(500).json({ message: "Server error", err });
+  }
+};
+
+export const login = async (req: any, res: any) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    const token = generateToken(user.id);
+
+    return res.json({
+      message: "Login successful",
+      token
+    });
+
+  } catch (err) {
+    return res.status(500).json({ message: "Server error" });
   }
 };
