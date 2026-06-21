@@ -3,13 +3,35 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String  @unique
+  password  String
+  wallet    Wallet?
+  createdAt DateTime @default(now())
 }
 
 model Wallet {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   balance   Float    @default(0)
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  transactions Transaction[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  type        String   // CREDIT | DEBIT | TRANSFER
+  amount      Float
+  senderId    String?
+  receiverId  String?
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  createdAt   DateTime @default(now())
 }
