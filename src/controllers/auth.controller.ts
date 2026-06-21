@@ -25,7 +25,7 @@ export const register = async (req: any, res: any) => {
       data: {
         name,
         email,
-        password, // plain for now (we fix security later step)
+        password: await bcrypt.hash(password, 10),
         wallet: {
           create: {
             balance: 0
